@@ -1,0 +1,107 @@
+<html>
+<meta charset="UTF-8">
+<title>谷歌翻译自动替换换行符号为空格</title>
+<head>
+    <script lang="JavaScript">
+        function convertReturn() {
+            var inputText = document.getElementById("beforeConvert").value;
+            //防止文本一直导致的冲突，做了一个检测
+            let verifys = ["检0测", "检1测"];
+            let results = [];
+            for (let verify of verifys) {
+                let result = inputText.replace(/\.[\r\n\x0B\x0C\u0085\u2028\u2029]+/g, "." + verify);
+                result = result.replace(/\![\r\n\x0B\x0C\u0085\u2028\u2029]+/g, "!" + verify);
+                result = result.replace(/\?[\r\n\x0B\x0C\u0085\u2028\u2029]+/g, "?" + verify);
+                result = result.replace(/[\r\n\x0B\x0C\u0085\u2028\u2029]+/g, " ");
+                result = result.replace(new RegExp(verify, 'g'), "\n");
+                //特殊符号转换
+                result = result.replace(new RegExp("➤", 'g'), "\n➤");
+                result = result.replace(new RegExp("•", 'g'), "\n•");
+                result = result.replace(new RegExp("◾", 'g'), "\n◾");
+                
+                
+                //页数转换
+                result = result.replace(/\. \. \d+/g,function (match, pos, originalTex) {return match+"\n";});
+               results.push(result);
+            }
+            console.log("hello")
+            if (results[0] == results[1]) {
+                 //每格5000格字符，提前截断,因为谷歌翻译限制了每次不能超过5000个字符.
+                 var tempText=results[0]+"\n";
+                 var maxStringLength=5000;
+                 var currentIndex=0;
+                 var pos=0
+                 var resultText="";
+                 var page=0;
+                 var count=12;
+                 
+                 while(pos>=0 && pos<tempText.length-1 && count>0){
+                  page++;
+                  count--;
+                   if(currentIndex+maxStringLength<tempText.length){
+                   	pos = currentIndex+maxStringLength;
+                   }
+                   else {
+                   	pos = tempText.length;
+                   }
+
+                   var pos=tempText.lastIndexOf("\n",pos)
+                   console.log("pos="+pos+" tempText.length="+tempText.length);
+                   var frameText;
+                   if(pos>0){
+                       var frameLength=pos-currentIndex;
+                       frameText=tempText.substr(currentIndex,frameLength);
+                       //console.log(frameText);
+                       if(resultText.length>0){
+                          resultText=resultText+"\n\n\n\n------分页翻译中断符号-第"+page+"页------\n\n\n\n"+frameText;
+                       }
+                       else {
+                       	resultText=frameText;
+                       }
+                       currentIndex=pos;
+                       
+                   }
+                   else {
+                       frameText=tempText.substring(currentIndex)
+                   	   resultText=resultText+"\n\n\n\n------分页翻译中断符号------\n\n\n\n"+frameText;
+                   	  
+                   	  break;
+                   }
+                   var reg = new RegExp('/','g');
+                   let encodeUrl = encodeURI(frameText);
+                   if (encodeUrl.indexOf('/') >= 0) {
+                   	encodeUrl = encodeUrl.replace(reg, '%2F');
+                   }
+                   
+                   window.open("https://translate.google.cn/#en/zh-CN/" + encodeUrl)
+                 }
+                 
+                document.getElementById("afterConvert").value = resultText;//results[0];
+            } else {
+                document.getElementById("afterConvert").value = "转换出错了";
+            }
+        }
+    </script>
+</head>
+<style>
+    .center-div {
+        margin: 0 auto;
+        padding: 0;
+    }
+</style>
+<body>
+
+<div class="center-div">
+    <div id="left" style="margin-left: 5%; width: 40%; height: 70%; float:left">
+        <textarea id="beforeConvert" style="width: 100%; height:100%" placeholder="请输入转换内容"></textarea>
+    </div>
+    <div id="right" style="margin-right: 5%; width: 40%;  height: 70%;float:right">
+        <textarea id="afterConvert" style="width: 100%; height:100%" placeholder="转换结果"></textarea>
+    </div>
+
+</div>
+<button id="convertButton" name="开始转换" onclick="convertReturn()" style="width: 120px;float:bottom">开始转换</button>
+ </body>
+</html>
+
+
